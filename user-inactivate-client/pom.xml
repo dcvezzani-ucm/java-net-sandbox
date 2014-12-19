@@ -1,0 +1,135 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+	<parent>
+    <artifactId>box-auto-inactivate</artifactId>
+		<groupId>edu.ucmerced.box.idm</groupId>
+    <version>0.0.1-SNAPSHOT</version>
+	</parent>
+
+  <artifactId>user-inactivate-client</artifactId>
+  <name>user-inactivate-client</name>
+  <description>Web client to communicate with Box via RESTful API calls</description>
+
+	<properties>
+		<main.basedir>${project.parent.basedir}</main.basedir>
+	</properties>
+  
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>properties-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<goals>
+							<goal>read-project-properties</goal>
+						</goals>
+						<configuration>
+							<files>
+								<file>${main.basedir}/application.properties</file>
+							</files>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+		<finalName>User-Inactivate-Client</finalName>
+	</build>
+
+  <profiles>
+    <profile>
+      <id>user-inactivate</id>
+
+<!--
+mvn clean test -pl user-inactivate-client -am -Puser-inactivate -Ddatabase.type=oracle -Dservice.environment=development
+-->
+
+      <build>
+        <defaultGoal>test</defaultGoal>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>test</phase>
+                <goals>
+                  <goal>java</goal>
+                </goals>
+                <configuration>
+                  <mainClass>edu.ucmerced.box.uclauid.Runner</mainClass>
+                  <arguments>
+                    <argument>${main.basedir}/ws-ucla-wsdl/src/main/resources/wsdl/UCLAServices/UCLAServices.wsdl</argument>
+                  </arguments>
+                  <systemProperties>
+                    <systemProperty>
+                      <key>database.type</key>
+                      <value>${database.type}</value>
+                    </systemProperty>
+                    <systemProperty>
+                      <key>service.environment</key>
+                      <value>${service.environment}</value>
+                    </systemProperty>
+                    <systemProperty>
+                      <key>skipTests</key>
+                    </systemProperty>
+                  </systemProperties>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>test-user-inactivate</id>
+
+<!--
+mvn -pl user-inactivate-client -Ptest-user-inactivate -Ddatabase.type=oracle -Dservice.environment=development -DskipTests               
+-->
+
+      <build>
+        <defaultGoal>test</defaultGoal>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>test</phase>
+                <goals>
+                  <goal>java</goal>
+                </goals>
+                <configuration>
+                  <mainClass>edu.ucmerced.box.client.Runner</mainClass>
+                  <arguments>
+                    <argument>${main.basedir}/ws-ucla-wsdl/src/main/resources/wsdl/UCLAServices/UCLAServices.wsdl</argument>
+                  </arguments>
+                  <systemProperties>
+                    <systemProperty>
+                      <key>database.type</key>
+                      <value>${database.type}</value>
+                    </systemProperty>
+                    <systemProperty>
+                      <key>service.environment</key>
+                      <value>${service.environment}</value>
+                    </systemProperty>
+                    <systemProperty>
+                      <key>skipTests</key>
+                    </systemProperty>
+                  </systemProperties>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+   
+</project>
+
+

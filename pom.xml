@@ -1,9 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>edu.ucmerced.ucpath.idm</groupId>
+  <groupId>edu.ucmerced.box.idm</groupId>
   <artifactId>box-auto-inactivate</artifactId>
   <name>box-auto-inactivate</name>
   <description>Inactivate a Box user using Box RESTful API.</description>
+  <packaging>pom</packaging>
   <version>0.0.1-SNAPSHOT</version>
 
   <properties>
@@ -320,22 +321,22 @@
                    create a list of all source paths for the entire project
               -->
               <sourcepath>
-    ./from-ods-to-ucidm-client/src:./java-mail/src:./ora-ucidm-client/src:./ppsToPath/src:./src:./stringtest-ucidm-client/src:./ucla-ucla-client/src:./ucm-common-development-resources/src:./ucm-common-integration-resources/src:./ucm-common-production-resources/src:./ucm-common-resources/src:./ucm-db-migration/src:./ucm-db-migration-development/src:./ucm-db-migration-integration/src:./ucm-idm-client/src:./ucm-ucpath-dao/src:./ucm-ucpath-dao-idm/src:./ucm-ucpath-dao-ucidm/src:./ucm-ucpath-dao-ucla/src:./ucm-ucpath-hibernate/src:./ws-app-idm/src:./ws-app-ucidm/src:./ws-app-ucla/src:./ws-idm/src:./ws-idm-open-wsdl/bin/src:./ws-idm-open-wsdl/src:./ws-idm-service/src:./ws-idm-wsdl/src:./ws-ucidm/src:./ws-ucidm-service/src:./ws-ucidm-wsdl/src:./ws-ucla/src:./ws-ucla-service/src:./ws-ucla-wsdl/src:./ws-ucpath-idm-test-util/src:./ws-ucpath-service-common/src:./ws-ucpath-test-util/src:./ws-ucpath-ucidm-test-util/src
+    ./from-ods-to-ucidm-client/src:./java-mail/src:./ora-ucidm-client/src:./ppsToPath/src:./src:./stringtest-ucidm-client/src:./ucla-ucla-client/src:./ucm-common-development-resources/src:./ucm-common-integration-resources/src:./ucm-common-production-resources/src:./ucm-common-resources/src:./ucm-db-migration/src:./ucm-db-migration-development/src:./ucm-db-migration-integration/src:./ucm-idm-client/src:./ucm-box-dao/src:./ucm-box-dao-idm/src:./ucm-box-dao-ucidm/src:./ucm-box-dao-ucla/src:./ucm-box-hibernate/src:./ws-app-idm/src:./ws-app-ucidm/src:./ws-app-ucla/src:./ws-idm/src:./ws-idm-open-wsdl/bin/src:./ws-idm-open-wsdl/src:./ws-idm-service/src:./ws-idm-wsdl/src:./ws-ucidm/src:./ws-ucidm-service/src:./ws-ucidm-wsdl/src:./ws-ucla/src:./ws-ucla-service/src:./ws-ucla-wsdl/src:./ws-box-idm-test-util/src:./ws-box-service-common/src:./ws-box-test-util/src:./ws-box-ucidm-test-util/src
               </sourcepath>
 
               <!-- organize documentation by specified package groups (optional) -->
               <groups>
                 <group>
                   <title>UCLAUID Packages</title>
-                  <packages>edu.universityofcalifornia.ucpath.uclauid*:edu.ucmerced.ucpath.uclauid*</packages>
+                  <packages>edu.universityofcalifornia.box.uclauid*:edu.ucmerced.box.uclauid*</packages>
                 </group>
                 <group>
                   <title>UCIDM Packages</title>
-                  <packages>edu.universityofcalifornia.ucpath.ucidm*:edu.ucmerced.ucpath.ucidm*</packages>
+                  <packages>edu.universityofcalifornia.box.ucidm*:edu.ucmerced.box.ucidm*</packages>
                 </group>
                 <group>
                   <title>IDM Packages</title>
-                  <packages>edu.universityofcalifornia.ucpath.idm*:edu.ucmerced.ucpath.idm*</packages>
+                  <packages>edu.universityofcalifornia.box.idm*:edu.ucmerced.box.idm*</packages>
                 </group>
                 <group>
                   <title>Flyway Migration Packages</title>
@@ -360,6 +361,7 @@
 	</profiles>
   
   <modules>
+  <module>user-inactivate-client</module>
   </modules>
   
 </project>
