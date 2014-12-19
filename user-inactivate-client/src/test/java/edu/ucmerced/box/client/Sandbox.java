@@ -13,17 +13,17 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLPeerUnverifiedException;
 
-public class Runner{
+public class Sandbox{
 
 	public static void main(String[] args)
 	{
-		new Runner().testHttps();
-		new Runner().testHttp();
-		new Runner().testHttpCookies();
-		new Runner().testHttpResponseHeaders();
-		new Runner().testHttpRequestHeaders();
-		new Runner().testHttpCookiesSet();
-		new Runner().testHttpPost();
+		new Sandbox().testHttps();
+		new Sandbox().testHttp();
+		new Sandbox().testHttpCookies();
+		new Sandbox().testHttpResponseHeaders();
+		new Sandbox().testHttpRequestHeaders();
+		new Sandbox().testHttpCookiesSet();
+		new Sandbox().testHttpPost();
 	}
 
 	public void testHttp(){
