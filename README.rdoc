@@ -9,6 +9,21 @@ A Java-based RESTful client used to inactivate a Box user using Box's RESTful AP
 
 Eclipse and Maven can be used together to provide a rich environment in which to develop Java applications.  Eclipse with Maven plugins can be used by those who would wish to use a graphical interface.  Maven from the command line can be used by those who enjoy the speed in a terminal window.  Developers with either preference can co-exist well in a code repository thanks to Maven.
 
+Make sure the following Eclipse plugins are installed.
+
+Help > Eclipse Marketplace...
+
+Eclipse Marketplace
+* AnyEdit Tools (workset management)
+* EGit - Git Team Provider (git support)
+* JAutodoc (javadoc convenience)
+* JVM Monitor (profiler)
+* Maven Integration for Eclipse WTP (Juno) (Maven support)
+* Vrapper (Vim) (Vim support)
+
+Yoxos Marketplace
+* Vrapper - Surround Plugin (Optional)
+
 TcpMon is a nice tool that may be used to sniff HTTP or HTTPS transport packets.
 
 == Assumptions
