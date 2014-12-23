@@ -24,9 +24,9 @@ public class Sandbox{
 //		new Sandbox().testHttpResponseHeaders();
 //		new Sandbox().testHttpRequestHeaders();
 //		new Sandbox().testHttpCookiesSet();
-//		new Sandbox().testHttpPost();
+		new Sandbox().testHttpPost();
 //		new Sandbox().testHttpGetWithUrlParameters();
-		new Sandbox().testHttpPostWithUrlParameters();
+//		new Sandbox().testHttpPostWithUrlParameters();
 	}
 
 	public void testHttp(){
