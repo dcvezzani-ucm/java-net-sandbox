@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.*;
 import java.security.cert.Certificate;
@@ -17,22 +18,24 @@ public class Sandbox{
 
 	public static void main(String[] args)
 	{
-		new Sandbox().testHttps();
-		new Sandbox().testHttp();
-		new Sandbox().testHttpCookies();
-		new Sandbox().testHttpResponseHeaders();
-		new Sandbox().testHttpRequestHeaders();
-		new Sandbox().testHttpCookiesSet();
-		new Sandbox().testHttpPost();
+//		new Sandbox().testHttps();
+//		new Sandbox().testHttp();
+//		new Sandbox().testHttpCookies();
+//		new Sandbox().testHttpResponseHeaders();
+//		new Sandbox().testHttpRequestHeaders();
+//		new Sandbox().testHttpCookiesSet();
+//		new Sandbox().testHttpPost();
+//		new Sandbox().testHttpGetWithUrlParameters();
+		new Sandbox().testHttpPostWithUrlParameters();
 	}
 
 	public void testHttp(){
 
-		String https_url = "http://127.0.0.1:3771/greeting/test";
+		String http_url = "http://127.0.0.1:3771/greeting/test";
 		URL url;
 		try {
 
-			url = new URL(https_url);
+			url = new URL(http_url);
 			HttpURLConnection con = (HttpURLConnection)url.openConnection();
 
 			//dump all the content
@@ -44,6 +47,111 @@ public class Sandbox{
 			e.printStackTrace();
 		}
 
+	}
+
+	public void testHttpGetWithUrlParameters(){
+
+		String http_url = "http://127.0.0.1:3771/greeting/test";
+
+		String charset = "UTF-8";  // Or in Java 7 and later, use the constant: java.nio.charset.StandardCharsets.UTF_8.name()
+		String param1 = "value1";
+		String param2 = "value2";
+
+		URL url;
+		try {
+
+			String query = String.format("param1=%s&param2=%s",
+				     URLEncoder.encode(param1, charset),
+				     URLEncoder.encode(param2, charset));
+
+			url = new URL(http_url + "?" + query);
+			HttpURLConnection con = (HttpURLConnection)url.openConnection();
+			con.setRequestProperty("Accept-Charset", charset);
+
+			//dump all the content
+			print_content(con);
+
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public void testHttpPostWithUrlParameters(){
+
+		String charset = "UTF-8";  // Or in Java 7 and later, use the constant: java.nio.charset.StandardCharsets.UTF_8.name()
+		String param1 = "value1";
+		String param2 = "value2";
+
+		URL url;
+		try {
+
+			// get CSRF token (via GET)
+			String http_url = "http://127.0.0.1:3771/greeting/test";
+
+			// instantiate CookieManager
+			CookieManager manager = new CookieManager();
+			manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+			CookieHandler.setDefault(manager);
+			CookieStore cookieJar =  manager.getCookieStore();
+
+			// create cookie
+			// does this only do something from the server side?
+			//			HttpCookie cookie = new HttpCookie("blah", "bleh");
+
+			url = new URL(http_url);
+			//			cookieJar.add(url.toURI(), cookie);
+
+			HttpURLConnection con = (HttpURLConnection)url.openConnection();
+
+			//dump all the content
+			print_content(con);
+
+			//dump all the cookies
+			print_cookies(manager, con);
+
+			con.disconnect();
+
+
+			// make RESTful POST request
+			http_url = "http://127.0.0.1:3771/greeting/shake.json";
+			url = new URL(http_url);
+
+			con = (HttpURLConnection)url.openConnection();
+			con.setRequestMethod("POST");
+      con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
+			con.setDoOutput(true);
+
+			String query = String.format("param1=%s&param2=%s",
+				     URLEncoder.encode(param1, charset),
+				     URLEncoder.encode(param2, charset));
+
+			// there has to be a non-null value for the body, even if it is an
+			// empty string or there will be a 411 error reported
+//			BufferedWriter bf = new BufferedWriter(new OutputStreamWriter(con.getOutputStream()));
+//			bf.write(query.getBytes(charset));
+//			bf.flush();
+
+			try (OutputStream output = con.getOutputStream()) {
+			    output.write(query.getBytes(charset));
+			}
+
+			//dump all the content
+			print_content(con);
+
+			print_cookies(manager, con);
+
+			con.disconnect();
+
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+			//		} catch (URISyntaxException e) {
+			//			e.printStackTrace();
+		}
 	}
 
 	public void testHttpPost(){
@@ -110,7 +218,7 @@ public class Sandbox{
 
 	public void testHttpCookiesSet(){
 
-		String https_url = "http://127.0.0.1:3771/greeting/test";
+		String http_url = "http://127.0.0.1:3771/greeting/test";
 		URL url;
 		try {
 			// instantiate CookieManager
@@ -122,7 +230,7 @@ public class Sandbox{
 			// create cookie
 			HttpCookie cookie = new HttpCookie("blah", "bleh");
 
-			url = new URL(https_url);
+			url = new URL(http_url);
 			cookieJar.add(url.toURI(), cookie);
 
 			HttpURLConnection con = (HttpURLConnection)url.openConnection();
@@ -145,7 +253,7 @@ public class Sandbox{
 
 	public void testHttpCookies(){
 
-		String https_url = "http://127.0.0.1:3771/greeting/test";
+		String http_url = "http://127.0.0.1:3771/greeting/test";
 		URL url;
 		try {
 			// Instantiate CookieManager;
@@ -154,7 +262,7 @@ public class Sandbox{
 			manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
 			CookieHandler.setDefault(manager);
 
-			url = new URL(https_url);
+			url = new URL(http_url);
 			HttpURLConnection con = (HttpURLConnection)url.openConnection();
 
 			//dump all the content
@@ -182,11 +290,11 @@ public class Sandbox{
 	}
 
 	public void testHttpResponseHeaders(){
-		String https_url = "http://127.0.0.1:3771/greeting/test";
+		String http_url = "http://127.0.0.1:3771/greeting/test";
 		URL url;
 		try {
 
-			url = new URL(https_url);
+			url = new URL(http_url);
 			HttpURLConnection con = (HttpURLConnection)url.openConnection();
 
 			//dump all the content
@@ -203,11 +311,11 @@ public class Sandbox{
 	}
 
 	public void testHttpRequestHeaders(){
-		String https_url = "http://127.0.0.1:3771/greeting/test";
+		String http_url = "http://127.0.0.1:3771/greeting/test";
 		URL url;
 		try {
 
-			url = new URL(https_url);
+			url = new URL(http_url);
 			HttpURLConnection con = (HttpURLConnection)url.openConnection();
 
 			con.setRequestProperty("blah", "bleh");
@@ -240,15 +348,15 @@ public class Sandbox{
 
 	private void testHttps(){
 
-		String https_url = "https://www.google.com/";
+		String http_url = "http://www.google.com/";
 		URL url;
 		try {
 
-			url = new URL(https_url);
+			url = new URL(http_url);
 			HttpsURLConnection con = (HttpsURLConnection)url.openConnection();
 
 			//dump all cert info
-			print_https_cert(con);
+			print_http_cert(con);
 
 			//dump all the content
 			print_content(con);
@@ -261,7 +369,7 @@ public class Sandbox{
 
 	}
 
-	private void print_https_cert(HttpsURLConnection con){
+	private void print_http_cert(HttpsURLConnection con){
 
 		if(con!=null){
 
