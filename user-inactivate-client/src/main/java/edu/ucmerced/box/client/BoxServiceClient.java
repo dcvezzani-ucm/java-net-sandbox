@@ -73,7 +73,7 @@ public class BoxServiceClient {
 			StringBuffer sb_parameters = new StringBuffer();
 			for(String parameter_name : parameters.keySet()){
 				String parameter_value = URLEncoder.encode(parameters.get(parameter_name), charset);
-				sb_parameters.append(String.format("%s:%s&", parameter_name, parameter_value));
+				sb_parameters.append(String.format("%s=%s&", parameter_name, parameter_value));
 			}
 
 			String query = sb_parameters.substring(0, sb_parameters.length()-1);
@@ -97,9 +97,7 @@ public class BoxServiceClient {
 	}
 
 	protected BufferedReader get_buffered_reader(InputStream is){
-		BufferedReader br =
-				new BufferedReader(
-						new InputStreamReader(is));
+		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 		return br;
 	}
 
