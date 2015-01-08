@@ -2,3 +2,5 @@
 .sw*
 .*.sw*
 target
+logs
+application.properties

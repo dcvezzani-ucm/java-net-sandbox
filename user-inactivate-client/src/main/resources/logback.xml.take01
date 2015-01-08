@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true">
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <Pattern>%d{yyyy-MM-dd_HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</Pattern>
+    </encoder>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>/Users/dvezzani/Documents/box-auto-inactivate/box-auto-inactivate/user-inactivate-client/logs/user-inactivate-client.log</file>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <Pattern>%d{yyyy-MM-dd_HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <FileNamePattern>/Users/dvezzani/Documents/box-auto-inactivate/box-auto-inactivate/user-inactivate-client/logs/user-inactivate-client.%i.log.zip</FileNamePattern>
+      <MinIndex>1</MinIndex>
+      <MaxIndex>10</MaxIndex>
+    </rollingPolicy>
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <MaxFileSize>2MB</MaxFileSize>
+    </triggeringPolicy>
+  </appender>
+
+  <appender name="PROFILER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>/Users/dvezzani/Documents/box-auto-inactivate/box-auto-inactivate/user-inactivate-client/logs/user-inactivate-client.profiler.log</file>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <Pattern>%d{yyyy-MM-dd_HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <FileNamePattern>/Users/dvezzani/Documents/box-auto-inactivate/box-auto-inactivate/user-inactivate-client/logs/user-inactivate-client.profiler.%i.log.zip</FileNamePattern>
+      <MinIndex>1</MinIndex>
+      <MaxIndex>10</MaxIndex>
+    </rollingPolicy>
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <MaxFileSize>2MB</MaxFileSize>
+    </triggeringPolicy>
+  </appender>
+
+  <logger name="edu.ucmerced.box.client.BoxServiceClient" level="DEBUG" additivity="false" >
+    <appender-ref ref="FILE" />
+    <appender-ref ref="STDOUT" />
+  </logger>
+
+  <logger name="user-inactivate-client.profiler" level="OFF" additivity="false" >
+    <appender-ref ref="PROFILER" />
+  </logger>
+
+  <root level="DEBUG">
+    <appender-ref ref="FILE" />
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
