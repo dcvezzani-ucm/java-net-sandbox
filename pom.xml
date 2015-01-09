@@ -108,6 +108,12 @@
         <scope>test</scope>
       </dependency>
 
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.4-beta1</version>
+      </dependency>
+
       <!-- misc 
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -229,6 +235,13 @@
       <scope>test</scope>
     </dependency>
   
+    <!-- mock https client -->
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.4-beta1</version>
+    </dependency>
+
   </dependencies>
   
   <build>
