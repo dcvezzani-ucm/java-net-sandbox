@@ -22,7 +22,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +51,7 @@ public class BoxServiceClientTest {
 	}
 
 	static final String REQUEST_TOKEN_FILE_NAME = "./src/test/resources/request_token_content.html";
+	static final String IC_TOKEN_FILE_NAME = "./src/test/resources/ic_token_content.html";
 
 //	@Test
 	public void test_request_token_for_real() throws Exception {
@@ -72,11 +72,47 @@ public class BoxServiceClientTest {
 		}
 	}
 
+//	@Test
+	public void test_ic_token_for_real() throws Exception {
+		BoxServiceClientException e = null;
+		Properties properties = null;
+		properties = getProperties();
+
+		_bsc = new BoxServiceClient(properties);
+		bsc = spy(_bsc);
+
+		try {
+			bsc.request_token();
+			logger().debug("request_token: {}", bsc.get_request_token_partial());
+
+			String ic_token = bsc.ic_token();
+			logger().debug("ic_token: {}", bsc.get_token_partial(ic_token));
+
+		} catch (BoxServiceClientException e1) {
+			e = e1;
+		}
+	}
+
+//	@Test
+	public void test_parse_ic_token(){
+		BoxServiceClientException e = null;
+
+		_bsc = new BoxServiceClient("client_id", "client_secret", "username", "userpass");
+		bsc = spy(_bsc);
+
+		String request_token_html = get_ic_token_html();
+		String ic_token = bsc.parse_ic_token(request_token_html);
+
+		assertNotNull(ic_token);
+		assertEquals("blah", ic_token);
+
+	}
+
 	@Test
 	public void test_parse_request_token(){
 		BoxServiceClientException e = null;
 
-		_bsc = new BoxServiceClient("asdf", "qwer");
+		_bsc = new BoxServiceClient("client_id", "client_secret", "username", "userpass");
 		bsc = spy(_bsc);
 
 		String request_token_html = get_request_token_html();
@@ -347,6 +383,16 @@ public class BoxServiceClientTest {
 			fail(String.format("Unable to read source file: %s; %s", REQUEST_TOKEN_FILE_NAME, e2.getMessage()));
 		}
 		return request_token_html;
+	}
+
+	private String get_ic_token_html() {
+		String ic_token_html = null;
+		try {
+			ic_token_html = read_file_into_string(IC_TOKEN_FILE_NAME);
+		} catch (IOException e2) {
+			fail(String.format("Unable to read source file: %s; %s", IC_TOKEN_FILE_NAME, e2.getMessage()));
+		}
+		return ic_token_html;
 	}
 
 }
