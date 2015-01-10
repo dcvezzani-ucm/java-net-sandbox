@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,14 @@ import java.security.cert.Certificate;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +39,11 @@ public class BoxServiceClient {
 	private static final String CHARSET = "UTF-8";  // Or in Java 7 and later, use the constant: java.nio.charset.StandardCharsets.UTF_8.name()
 
 	Logger logger = null;
-	CookieManager manager;
-	CookieStore cookieJar;
+//	CookieManager manager;
+//	CookieStore cookieJar;
+
+	CloseableHttpClient httpclient = null;
+
 
 	String client_id;
 	String client_secret;
@@ -69,13 +81,20 @@ public class BoxServiceClient {
 		return json.toString();
 	}
 
-	protected void reset_cookies(){
-		// instantiate CookieManager
-		manager = new CookieManager();
-		manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-		CookieHandler.setDefault(manager);
-		cookieJar =  manager.getCookieStore();
+	protected CloseableHttpClient http_client(){
+		if(httpclient == null){
+			httpclient = HttpClients.createDefault();
+		}
+		return httpclient;
 	}
+
+//	protected void reset_cookies(){
+//		// instantiate CookieManager
+//		manager = new CookieManager();
+//		manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+//		CookieHandler.setDefault(manager);
+//		cookieJar =  manager.getCookieStore();
+//	}
 
 	protected String ic_token() throws BoxServiceClientException{
 //		  curl 'https://ucmerced.app.box.com/api/oauth2/authorize?response_type=code&client_id='${CLIENT_ID} \
@@ -93,84 +112,65 @@ public class BoxServiceClient {
 //		    --data 'login='${USERNAME}'&password='${USERPASS}'&login_submit=Authorizing...&dologin=1&client_id='${CLIENT_ID}'&response_type=code&redirect_uri=https%3A%2F%2Fwww.google.com&scope=root_readwrite+manage_enterprise&folder_id=&file_id=&state=&reg_step=&submit1=1&folder=&login_or_register_mode=login&new_login_or_register_mode=&__login=1&_redirect_url=%2Fapi%2Foauth2%2Fauthorize%3Fresponse_type%3Dcode%26client_id%3D'${CLIENT_ID}'&request_token='${REQUEST_TOKEN}'&_pw_sql=' > response.html
 
 		Exception e1 = null;
-		HttpsURLConnection con = null;
-		String http_url = "https://app.box.com/api/oauth2/authorize";
+		CloseableHttpResponse response = null;
+		HttpEntity entity = null;
 		ic_token = null;
+
+		String http_url = "https://app.box.com/api/oauth2/authorize";
 
 		Map<String, String> parameters = init_parameters();
 		parameters.put("response_type", "code");
 		parameters.put("client_id", client_id);
+		String query = create_query(parameters);
 
-//		URLEncoder.encode(param1, charset),
-		Map<String, String> _data = init_parameters();
-		_data.put("login", username);
-		_data.put("password", userpass);
-		_data.put("login_submit", "Authorizing...");
-		_data.put("dologin", "1");
-		_data.put("client_id", client_id);
-		_data.put("response_type", "code");
-		_data.put("redirect_uri", "https://www.google.com");
-		_data.put("scope", "root_readwrite manage_enterprise");
-		_data.put("folder_id", "");
-		_data.put("file_id", "");
-		_data.put("state", "");
-		_data.put("reg_step", "");
-		_data.put("submit1", "1");
-		_data.put("folder", "");
-		_data.put("login_or_register_mode", "login");
-		_data.put("new_login_or_register_mode", "");
-		_data.put("__login", "1");
-		_data.put("_redirect_url", "/api/oauth2/authorize?response_type=code&client_id=" + client_id);
-		_data.put("request_token", request_token);
-		_data.put("_pw_sql", "");
+		HttpPost httpPost = new HttpPost(String.format("%s%s", http_url, query));
+
+		List <BasicNameValuePair> nvps = new ArrayList <BasicNameValuePair>();
+		nvps.add(new BasicNameValuePair("login", username));
+		nvps.add(new BasicNameValuePair("password", userpass));
+		nvps.add(new BasicNameValuePair("login_submit", "Authorizing..."));
+		nvps.add(new BasicNameValuePair("dologin", "1"));
+		nvps.add(new BasicNameValuePair("client_id", client_id));
+		nvps.add(new BasicNameValuePair("response_type", "code"));
+		nvps.add(new BasicNameValuePair("redirect_uri", "https://www.google.com"));
+		nvps.add(new BasicNameValuePair("scope", "root_readwrite manage_enterprise"));
+		nvps.add(new BasicNameValuePair("folder_id", ""));
+		nvps.add(new BasicNameValuePair("file_id", ""));
+		nvps.add(new BasicNameValuePair("state", ""));
+		nvps.add(new BasicNameValuePair("reg_step", ""));
+		nvps.add(new BasicNameValuePair("submit1", "1"));
+		nvps.add(new BasicNameValuePair("folder", ""));
+		nvps.add(new BasicNameValuePair("login_or_register_mode", "login"));
+		nvps.add(new BasicNameValuePair("new_login_or_register_mode", ""));
+		nvps.add(new BasicNameValuePair("__login", "1"));
+		nvps.add(new BasicNameValuePair("_redirect_url", "/api/oauth2/authorize?response_type=code&client_id=" + client_id));
+		nvps.add(new BasicNameValuePair("request_token", request_token));
+		nvps.add(new BasicNameValuePair("_pw_sql", ""));
 
 		try {
-//			con = open_connection(http_url);
-			URL url = new URL(String.format("%s%s", http_url, create_query(parameters)));
-			con = (HttpsURLConnection)url.openConnection();
-//			con = (HttpURLConnection)url.openConnection();
+			httpPost.setEntity(new UrlEncodedFormEntity((List<? extends org.apache.http.NameValuePair>) nvps));
 
-			con.setRequestMethod("POST");
-			con.setRequestProperty("User-Agent", URLEncoder.encode("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0"));
-			con.setRequestProperty("Accept-Charset", charset());
-			con.setRequestProperty("Accept-Language", URLEncoder.encode("en-US,en;q=0.5"));
-			con.setRequestProperty("Host", "ucmerced.app.box.com");
-			con.setRequestProperty("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", charset()));
-			con.setRequestProperty("Referer", URLEncoder.encode(String.format("https://app.box.com/api/oauth2/authorize?response_type=code&client_id=%s", client_id), charset()));
-			con.setRequestProperty("Connection", "keep-alive");
-			con.setRequestProperty("Content-Type", URLEncoder.encode("application/x-www-form-urlencoded", charset()));
+			httpPost.setHeader("User-Agent", URLEncoder.encode("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0"));
+			httpPost.setHeader("Accept-Charset", charset());
+			httpPost.setHeader("Accept-Language", URLEncoder.encode("en-US,en;q=0.5"));
+			httpPost.setHeader("Host", "ucmerced.app.box.com");
+			httpPost.setHeader("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", charset()));
+			httpPost.setHeader("Referer", URLEncoder.encode(String.format("https://app.box.com/api/oauth2/authorize?response_type=code&client_id=%s", client_id), charset()));
+			httpPost.setHeader("Connection", "keep-alive");
+//			httpPost.setHeader("Content-Type", URLEncoder.encode("application/x-www-form-urlencoded", charset()));
 
-//			List <HttpCookie> _cookies = cookieJar.getCookies();
-//			Map<String, String> cookies = new HashMap<String,String>();
-//			for(HttpCookie cookie : _cookies){
-//				con.setRequestProperty("Cookie", String.format("%s=%s", cookie.getName(), cookie.getValue()));
-//			}
-
-			con.setDoInput(true);
-			con.setDoOutput(true);
-
-//			there has to be a non-null value for the body, even if it is an
-//			empty string or there will be a 411 error reported
-//			BufferedWriter bf = new BufferedWriter(new OutputStreamWriter(con.getOutputStream()));
-//			bf.write(query.getBytes(charset));
-//			bf.flush();
-
-			String data = create_query(_data);
-			try (OutputStream output = con.getOutputStream()) {
-				output.write(data.getBytes(charset()));
-			}
+			response = http_client().execute(httpPost);
 
 			//dump response info
-			logger().debug("Request Method: {}", con.getRequestMethod());
-			log_cookies(manager, con);
-			log_headers(con);
-			log_https_cert(con);
+			logger().debug("Request Method: {}", httpPost.getMethod());
+//			log_cookies(manager, con);
+			log_headers(response);
+//			log_https_cert(con);
 
-			String response_content = get_content(con);
+			String response_content = get_content(response);
 			write_string_to_file("ic_token.txt", response_content);
 
 			ic_token = parse_ic_token(response_content);
-
 			logger().debug(String.format("ic_token has been cached (%s)", get_token_partial(ic_token)));
 
 		} catch (Exception e) {
@@ -241,37 +241,42 @@ public class BoxServiceClient {
 
 		Exception e1 = null;
 
-		HttpURLConnection con = null;
-		String http_url = "https://app.box.com/api/oauth2/authorize";
-		request_token = null;
+		CloseableHttpResponse response = null;
+		HttpEntity entity = null;
+		ic_token = null;
 
-		reset_cookies();
+		String http_url = "https://app.box.com/api/oauth2/authorize";
 
 		Map<String, String> parameters = init_parameters();
 		parameters.put("response_type", "code");
 		parameters.put("client_id", client_id);
+		String query = create_query(parameters);
+
+		HttpGet httpGet = new HttpGet(String.format("%s%s", http_url, query));
 
 		try {
-			con = open_connection(http_url, parameters);
-			con.setRequestProperty("Accept-Charset", charset());
-			con.setRequestProperty("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"));
-			con.setRequestProperty("Accept-Language", URLEncoder.encode("en-US,en;q=0.5"));
-			con.setRequestProperty("User-Agent", URLEncoder.encode("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0"));
-			con.setRequestProperty("Host", "app.box.com");
-			con.setRequestProperty("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", charset()));
-			con.setRequestProperty("Connection", "keep-alive");
+			httpGet.setHeader("Accept-Charset", charset());
+			httpGet.setHeader("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"));
+			httpGet.setHeader("Accept-Language", URLEncoder.encode("en-US,en;q=0.5"));
+			httpGet.setHeader("User-Agent", URLEncoder.encode("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0"));
+			httpGet.setHeader("Host", "app.box.com");
+			httpGet.setHeader("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", charset()));
+			httpGet.setHeader("Connection", "keep-alive");
 
-			String response_content = get_content(con);
+			response = http_client().execute(httpGet);
+
+			String response_content = get_content(response);
 			write_string_to_file("request_token.txt", response_content);
 
 			//dump response info
-			logger().debug("Request Method: {}", con.getRequestMethod());
-			log_cookies(manager, con);
-			log_headers(con);
+			logger().debug("Request Method: {}", httpGet.getMethod());
+//			log_cookies(manager, con);
+			log_headers(response);
+//			log_https_cert(con);
 
 			request_token = parse_request_token(response_content);
-
 			logger().debug(String.format("request_token has been cached (%s)", get_request_token_partial()));
+
 		} catch (Exception e) {
 			e1 = e;
 		} finally {
@@ -343,6 +348,36 @@ public class BoxServiceClient {
 	protected BufferedReader get_buffered_reader(InputStream is){
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 		return br;
+	}
+
+	protected String get_content(CloseableHttpResponse response) throws BoxServiceClientException{
+		String response_content = null;
+
+		if(response!=null){
+
+			try {
+				logger().debug("Status: {}", response.getStatusLine());
+				HttpEntity entity = response.getEntity();
+				InputStream is = entity.getContent();
+
+				BufferedReader br = new BufferedReader(new InputStreamReader(entity.getContent()));
+				String input;
+				StringBuffer sb_response = new StringBuffer();
+
+				while ((input = br.readLine()) != null){
+					sb_response.append(input);
+				}
+				br.close();
+
+				response_content = sb_response.toString();
+				logger().debug("Response content: {}", response_content);
+
+			} catch (Exception e) {
+				throw new BoxServiceClientException("Unable to get content from the response", e);
+			}
+		}
+
+		return response_content;
 	}
 
 	protected String get_content(HttpURLConnection con) throws BoxServiceClientException{
@@ -453,6 +488,17 @@ public class BoxServiceClient {
 			for (HttpCookie cookie: cookies) {
 				logger().debug(String.format("CookieHandler retrieved cookie: %s", cookie));
 			}
+		}
+	}
+
+	private void log_headers(CloseableHttpResponse response) {
+		if(logger().isDebugEnabled()){
+		for(Header header : response.getAllHeaders()){
+			logger().debug(String.format("Name : %s, Value: %s", header.getName(), header.getValue()));
+		}
+			//get header by 'key'
+//			String server = con.getHeaderField("Server");
+//			logger().debug("[HEADER] Server: {}", server);
 		}
 	}
 
