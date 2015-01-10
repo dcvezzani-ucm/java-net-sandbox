@@ -31,6 +31,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +53,8 @@ public class BoxServiceClient {
 
 	String request_token;
 	String ic_token;
+	String auth_token;
+	String access_token;
 
 	@Deprecated
 	public BoxServiceClient(String client_id, String client_secret){
@@ -184,6 +187,185 @@ public class BoxServiceClient {
 		return ic_token;
 	}
 
+	protected String auth_token() throws BoxServiceClientException{
+//		  curl 'https://app.box.com/api/oauth2/authorize?response_type=code&client_id='${CLIENT_ID}'' \
+//		    -X POST \
+//		    --dump-header header.txt \
+//		    --cookie cookies.txt --cookie-jar cookies.txt \
+//		    -v \
+//		    -H 'Host: app.box.com' \
+//		    -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0' \
+//		    -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' \
+//		    -H 'Accept-Language: en-US,en;q=0.5' \
+//		    -H 'Referer: https://ucmerced.app.box.com/api/oauth2/authorize?response_type=code&client_id='${CLIENT_ID}'' \
+//		    -H 'Connection: keep-alive' \
+//		    -H 'Content-Type: application/x-www-form-urlencoded' \
+//		    --data 'client_id='${CLIENT_ID}'&response_type=code&redirect_uri=https%3A%2F%2Fwww.google.com&scope=root_readwrite+manage_enterprise&folder_id=&file_id=&state=&doconsent=doconsent&ic='${IC_TOKEN}'&consent_accept=Grant+access+to+Box&request_token='${REQUEST_TOKEN}'' > response.html
+
+		Exception e1 = null;
+		CloseableHttpResponse response = null;
+		HttpEntity entity = null;
+		auth_token = null;
+
+		String http_url = "https://app.box.com/api/oauth2/authorize";
+
+		Map<String, String> parameters = init_parameters();
+		parameters.put("response_type", "code");
+		parameters.put("client_id", client_id);
+		String query = create_query(parameters);
+
+		HttpPost httpPost = new HttpPost(String.format("%s%s", http_url, query));
+
+		List <BasicNameValuePair> nvps = new ArrayList <BasicNameValuePair>();
+		nvps.add(new BasicNameValuePair("client_id", client_id));
+		nvps.add(new BasicNameValuePair("response_type", "code"));
+		nvps.add(new BasicNameValuePair("redirect_uri", "https://www.google.com"));
+		nvps.add(new BasicNameValuePair("scope", "root_readwrite manage_enterprise"));
+		nvps.add(new BasicNameValuePair("folder_id", ""));
+		nvps.add(new BasicNameValuePair("file_id", ""));
+		nvps.add(new BasicNameValuePair("state", ""));
+		nvps.add(new BasicNameValuePair("doconsent", "doconsent"));
+		nvps.add(new BasicNameValuePair("ic", ic_token));
+		nvps.add(new BasicNameValuePair("consent_accept", "Grant access to Box"));
+		nvps.add(new BasicNameValuePair("request_token", request_token));
+
+		try {
+			httpPost.setEntity(new UrlEncodedFormEntity((List<? extends org.apache.http.NameValuePair>) nvps));
+
+			httpPost.setHeader("User-Agent", URLEncoder.encode("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0"));
+			httpPost.setHeader("Accept-Charset", charset());
+			httpPost.setHeader("Accept-Language", URLEncoder.encode("en-US,en;q=0.5"));
+			httpPost.setHeader("Host", "app.box.com");
+			httpPost.setHeader("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", charset()));
+			httpPost.setHeader("Referer", URLEncoder.encode(String.format("https://app.box.com/api/oauth2/authorize?response_type=code&client_id=%s", client_id), charset()));
+			httpPost.setHeader("Connection", "keep-alive");
+//			httpPost.setHeader("Content-Type", URLEncoder.encode("application/x-www-form-urlencoded", charset()));
+
+			response = http_client().execute(httpPost);
+
+			//dump response info
+			logger().debug("Request Method: {}", httpPost.getMethod());
+//			log_cookies(manager, con);
+			log_headers(response);
+//			log_https_cert(con);
+
+			String response_content = get_content(response);
+			write_string_to_file("auth_token.txt", response_content);
+
+			Header[] _header_location = response.getHeaders("Location");
+			String header_location = null;
+			if(_header_location != null){
+				header_location = _header_location[0].getValue();
+			}
+
+			auth_token = parse_auth_token(header_location);
+			logger().debug(String.format("auth_token has been cached (%s)", get_token_partial(auth_token)));
+
+		} catch (Exception e) {
+			e1 = e;
+		} finally {
+			if(e1 != null){
+				throw new BoxServiceClientException(e1);
+			}
+		}
+
+		return ic_token;
+	}
+
+	protected String access_token() throws BoxServiceClientException{
+//		  export ACCESS_TOKEN=$( curl https://api.box.com/oauth2/token \
+//			    -X POST \
+//			    --dump-header header.txt \
+//			    --cookie cookies.txt --cookie-jar cookies.txt \
+//			    -v \
+//			    -d "grant_type=authorization_code&code=${AUTH_TOKEN}&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}" | jq '. | .access_token' | sed -n -e 's/\"\([^\"]*\)\"/\1/p' )
+
+		Exception e1 = null;
+		CloseableHttpResponse response = null;
+		HttpEntity entity = null;
+		access_token = null;
+
+		String http_url = "https://api.box.com/oauth2/token";
+
+		HttpPost httpPost = new HttpPost(String.format(http_url));
+
+		List <BasicNameValuePair> nvps = new ArrayList <BasicNameValuePair>();
+		nvps.add(new BasicNameValuePair("grant_type", "authorization_code"));
+		nvps.add(new BasicNameValuePair("code", auth_token));
+		nvps.add(new BasicNameValuePair("client_id", client_id));
+		nvps.add(new BasicNameValuePair("client_secret", client_secret));
+
+		try {
+			httpPost.setEntity(new UrlEncodedFormEntity((List<? extends org.apache.http.NameValuePair>) nvps));
+
+			response = http_client().execute(httpPost);
+
+			//dump response info
+			logger().debug("Request Method: {}", httpPost.getMethod());
+//			log_cookies(manager, con);
+			log_headers(response);
+//			log_https_cert(con);
+
+			String response_content = get_content(response);
+			write_string_to_file("access_token.txt", response_content);
+
+			access_token = parse_access_token(response_content);
+			logger().debug(String.format("access_token has been cached (%s)", get_token_partial(access_token)));
+
+		} catch (Exception e) {
+			e1 = e;
+		} finally {
+			if(e1 != null){
+				throw new BoxServiceClientException(e1);
+			}
+		}
+
+		return access_token;
+	}
+
+	protected String my_box_profile() throws BoxServiceClientException{
+//		  curl https://api.box.com/2.0/users/me \
+//			    --dump-header header.txt \
+//			    --cookie cookies.txt --cookie-jar cookies.txt \
+//			    -v \
+//			    -H "Authorization: Bearer ${ACCESS_TOKEN}" | jq '.'
+
+		Exception e1 = null;
+		CloseableHttpResponse response = null;
+		HttpEntity entity = null;
+		String my_box_profile = null;
+
+		String http_url = "https://api.box.com/2.0/users/me";
+
+		HttpGet httpGet = new HttpGet(String.format(http_url));
+
+		try {
+			httpGet.setHeader("Authorization", String.format("Bearer %s", access_token));
+
+			response = http_client().execute(httpGet);
+
+			//dump response info
+			logger().debug("Request Method: {}", httpGet.getMethod());
+//			log_cookies(manager, con);
+			log_headers(response);
+//			log_https_cert(con);
+
+			String response_content = get_content(response);
+			write_string_to_file("my_box_profile.txt", response_content);
+
+			my_box_profile = response_content;
+
+		} catch (Exception e) {
+			e1 = e;
+		} finally {
+			if(e1 != null){
+				throw new BoxServiceClientException(e1);
+			}
+		}
+
+		return my_box_profile;
+	}
+
 	protected String create_query(Map<String, String> parameters) throws BoxServiceClientException {
 		String query = "";
 		Exception e1 = null;
@@ -214,6 +396,21 @@ public class BoxServiceClient {
 		return query;
 	}
 
+	protected String parse_access_token(String response_content) {
+//		{
+//			  "access_token": "2kFUcXylxR5c7wjx2iz51SrZuSbg02a4",
+//			  "expires_in": 4202,
+//			  "restricted_to": [],
+//			  "refresh_token": "M1DFeKPmoa0lnZ4nyclWZCSpFnphueH8WbZ2X84QkvIfJXpmXPw6kuclqCWA2rkb",
+//			  "token_type": "bearer"
+//			}
+
+		JSONObject obj = new JSONObject(response_content);
+		String access_token = obj.getString("access_token");
+
+		return access_token;
+	}
+
 	protected String parse_ic_token(String response_content) {
 		String ic_token = null;
 		Pattern pattern = Pattern.compile(".*<input type=\"hidden\" name=\"ic\" value=\"([^\"]*)\" />.*");
@@ -224,6 +421,18 @@ public class BoxServiceClient {
 		}
 
 		return ic_token;
+	}
+
+	protected String parse_auth_token(String header_location) {
+		String auth_token = null;
+		Pattern pattern = Pattern.compile(".*code=([^&[:space:]]*).*");
+		Matcher m = pattern.matcher(header_location);
+
+		if (m.find( )) {
+			auth_token = m.group(1);
+		}
+
+		return auth_token;
 	}
 
 	protected String request_token() throws BoxServiceClientException{

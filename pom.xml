@@ -108,10 +108,18 @@
         <scope>test</scope>
       </dependency>
 
+      <!-- mock https client -->
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
         <version>4.4-beta1</version>
+      </dependency>
+
+      <!-- json parsing -->
+      <dependency>
+        <groupId>org.json</groupId>
+        <artifactId>json</artifactId>
+        <version>20140107</version>
       </dependency>
 
       <!-- misc 
@@ -239,7 +247,12 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>4.4-beta1</version>
+    </dependency>
+
+    <!-- json parsing -->
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
     </dependency>
 
   </dependencies>

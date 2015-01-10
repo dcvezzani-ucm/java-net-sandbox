@@ -157,7 +157,7 @@ public class BoxServiceClientTest {
 		verify(parameters).put("response_type", "code");
 		verify(parameters).put(eq("client_id"), anyString());
 //		verify(bsc.open_connection(endsWith("/api/oauth2/authorize"), anyMap()));
-		verify(logger, times(1)).debug(anyString());
+		verify(logger, atLeast(1)).debug(anyString());
 
 	}
 

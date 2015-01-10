@@ -72,6 +72,15 @@ public class JoyRide {
 
 		String ic_token = bsc.ic_token();
 		logger().debug("ic_token: {}", bsc.get_token_partial(ic_token));
+
+		String auth_token = bsc.auth_token();
+		logger().debug("auth_token: {}", bsc.get_token_partial(auth_token));
+
+		String access_token = bsc.access_token();
+		logger().debug("access_token: {}", bsc.get_token_partial(access_token));
+
+		String my_box_profile = bsc.my_box_profile();
+		logger().debug("my_box_profile: {}", bsc.get_token_partial(my_box_profile));
 	}
 
 	private Properties getProperties() throws FileNotFoundException,
