@@ -40,7 +40,7 @@ public class BoxServiceClientTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_bsc = new BoxServiceClient("the client id", "the client secret");
+		_bsc = new BoxServiceClient("the client id", "the client secret", "user name", "user password");
 		bsc = spy(_bsc);
 
 		con = mock(HttpURLConnection.class);

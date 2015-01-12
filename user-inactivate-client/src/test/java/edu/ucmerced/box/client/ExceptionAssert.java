@@ -4,7 +4,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Assert;
 
@@ -24,6 +23,7 @@ public class ExceptionAssert extends Assert {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	public static void assertThrowsException(Throwable expected, Class actual) {
 		assertNotNull("Expected exception to be thrown and it wasn't", expected);
 

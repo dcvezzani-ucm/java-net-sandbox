@@ -4,3 +4,9 @@
 target
 logs
 application.properties
+
+access_token.txt
+ic_token.txt
+my_box_profile.txt
+request_token.txt
+

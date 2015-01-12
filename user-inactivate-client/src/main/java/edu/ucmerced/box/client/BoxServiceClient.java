@@ -5,10 +5,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.*;
+import java.net.CookieManager;
+import java.net.CookieStore;
+import java.net.HttpCookie;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,9 +22,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.HttpsURLConnection;
-
-import java.security.cert.Certificate;
-
 import javax.net.ssl.SSLPeerUnverifiedException;
 
 import org.apache.http.Header;
@@ -153,9 +154,9 @@ public class BoxServiceClient {
 		try {
 			httpPost.setEntity(new UrlEncodedFormEntity((List<? extends org.apache.http.NameValuePair>) nvps));
 
-			httpPost.setHeader("User-Agent", URLEncoder.encode("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0"));
+			httpPost.setHeader("User-Agent", URLEncoder.encode("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0", charset()));
 			httpPost.setHeader("Accept-Charset", charset());
-			httpPost.setHeader("Accept-Language", URLEncoder.encode("en-US,en;q=0.5"));
+			httpPost.setHeader("Accept-Language", URLEncoder.encode("en-US,en;q=0.5", charset()));
 			httpPost.setHeader("Host", "ucmerced.app.box.com");
 			httpPost.setHeader("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", charset()));
 			httpPost.setHeader("Referer", URLEncoder.encode(String.format("https://app.box.com/api/oauth2/authorize?response_type=code&client_id=%s", client_id), charset()));
@@ -232,9 +233,9 @@ public class BoxServiceClient {
 		try {
 			httpPost.setEntity(new UrlEncodedFormEntity((List<? extends org.apache.http.NameValuePair>) nvps));
 
-			httpPost.setHeader("User-Agent", URLEncoder.encode("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0"));
+			httpPost.setHeader("User-Agent", URLEncoder.encode("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0", charset()));
 			httpPost.setHeader("Accept-Charset", charset());
-			httpPost.setHeader("Accept-Language", URLEncoder.encode("en-US,en;q=0.5"));
+			httpPost.setHeader("Accept-Language", URLEncoder.encode("en-US,en;q=0.5", charset()));
 			httpPost.setHeader("Host", "app.box.com");
 			httpPost.setHeader("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", charset()));
 			httpPost.setHeader("Referer", URLEncoder.encode(String.format("https://app.box.com/api/oauth2/authorize?response_type=code&client_id=%s", client_id), charset()));
@@ -332,7 +333,7 @@ public class BoxServiceClient {
 
 		Exception e1 = null;
 		CloseableHttpResponse response = null;
-		HttpEntity entity = null;
+//		HttpEntity entity = null;
 		String my_box_profile = null;
 
 		String http_url = "https://api.box.com/2.0/users/me";
@@ -465,9 +466,9 @@ public class BoxServiceClient {
 
 		try {
 			httpGet.setHeader("Accept-Charset", charset());
-			httpGet.setHeader("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"));
-			httpGet.setHeader("Accept-Language", URLEncoder.encode("en-US,en;q=0.5"));
-			httpGet.setHeader("User-Agent", URLEncoder.encode("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0"));
+			httpGet.setHeader("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", charset()));
+			httpGet.setHeader("Accept-Language", URLEncoder.encode("en-US,en;q=0.5", charset()));
+			httpGet.setHeader("User-Agent", URLEncoder.encode("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0", charset()));
 			httpGet.setHeader("Host", "app.box.com");
 			httpGet.setHeader("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", charset()));
 			httpGet.setHeader("Connection", "keep-alive");
