@@ -46,6 +46,8 @@ Create a Box enterprise account.  Create a Box application and generate a set of
 Set up the Java-based web client (implemented with Apache's HttpClient library).
 
 1. git clone https://github.com/dcvezzani-ucm/java-net-sandbox.git
+1. cp application.properties.sample application.properties
+1. edit application.properties; supply the necessary information
 1. start Eclipse
 1. create or select a workspace in which to place the project
 1. in terminal window, go to directory of selected workspace
