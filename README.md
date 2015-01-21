@@ -11,7 +11,7 @@ Prerequisites
 ------
 
 * Java 1.7 (http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html)
-* Eclipse (Version: Juno Service Release 2; Build id: 20130225-0426) (https://eclipse.org/downloads/packages/release/juno/sr2)
+* Eclipse IDE for Java Developers (Version: Luna Service Release 1 (4.4.1); Build id: 20140925-1800) (http://www.eclipse.org/downloads/packages/eclipse-ide-java-developers/lunasr1)
 * Maven 3.1.1 (http://maven.apache.org/download.cgi)
 
 Eclipse and Maven can be used together to provide a rich environment in which to develop Java applications.  Eclipse with Maven plugins can be used by those who would wish to use a graphical interface.  Maven from the command line can be used by those who enjoy the speed in a terminal window.  Developers with either preference can co-exist well in a code repository thanks to Maven.
@@ -25,7 +25,7 @@ Eclipse Marketplace
 * EGit - Git Team Provider (git support)
 * JAutodoc (javadoc convenience)
 * JVM Monitor (profiler)
-* Maven Integration for Eclipse WTP (Juno) (Maven support)
+* Maven (Java EE) Integration for Eclipse WTP (Luna) 1.1.0
 * Vrapper (Vim) (Vim support)
 
 Yoxos Marketplace
@@ -144,7 +144,6 @@ The results should include something like the following at the bottom of the con
 2015-01-12_09:00:33.694 DEBUG e.u.box.client.BoxServiceClient - Request Method: GET
 2015-01-12_09:00:33.695 DEBUG e.u.box.client.BoxServiceClient - Name : Server, Value: nginx
 2015-01-12_09:00:33.695 DEBUG e.u.box.client.BoxServiceClient - Name : Date, Value: Mon, 12 Jan 2015 16:59:18 GMT
-
 
 2015-01-12_09:00:33.695 DEBUG e.u.box.client.BoxServiceClient - Name : Content-Type, Value: application/json
 2015-01-12_09:00:33.695 DEBUG e.u.box.client.BoxServiceClient - Name : Content-Length, Value: 423
