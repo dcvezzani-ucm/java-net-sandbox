@@ -4,19 +4,14 @@ import org.junit.*;
 import static org.junit.Assert.*;
 
 /**
- * The class <code>BasicNameValuePairTest</code> contains tests for the class <code>{@link BasicNameValuePair}</code>.
- *
- * @generatedBy CodePro at 12/18/14 3:40 PM
- * @author dvezzani
- * @version $Revision: 1.0 $
+ * The Class BasicNameValuePairTest.
  */
 public class BasicNameValuePairTest {
+
 	/**
-	 * Run the BasicNameValuePair(String,String) constructor test.
+	 * Test basic name value pair_1.
 	 *
-	 * @throws Exception
-	 *
-	 * @generatedBy CodePro at 12/18/14 3:40 PM
+	 * @throws Exception the exception
 	 */
 	@Test
 	public void testBasicNameValuePair_1()
@@ -34,12 +29,9 @@ public class BasicNameValuePairTest {
 	}
 
 	/**
-	 * Perform pre-test initialization.
+	 * Sets the up.
 	 *
-	 * @throws Exception
-	 *         if the initialization fails for some reason
-	 *
-	 * @generatedBy CodePro at 12/18/14 3:40 PM
+	 * @throws Exception the exception
 	 */
 	@Before
 	public void setUp()
@@ -48,12 +40,9 @@ public class BasicNameValuePairTest {
 	}
 
 	/**
-	 * Perform post-test clean-up.
+	 * Tear down.
 	 *
-	 * @throws Exception
-	 *         if the clean-up fails for some reason
-	 *
-	 * @generatedBy CodePro at 12/18/14 3:40 PM
+	 * @throws Exception the exception
 	 */
 	@After
 	public void tearDown()

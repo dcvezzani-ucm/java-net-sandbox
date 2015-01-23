@@ -15,15 +15,29 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class JoyRide.
+ */
 public class JoyRide {
 
-//	private static final String CHARSET = "UTF-8";  // Or in Java 7 and later, use the constant: java.nio.charset.StandardCharsets.UTF_8.name()
-
+	/** The _bsc. */
 	BoxServiceClient _bsc;
+	
+	/** The bsc. */
 	BoxServiceClient bsc;
+	
+	/** The con. */
 	HttpURLConnection con;
+	
+	/** The logger. */
 	Logger logger;
 
+	/**
+	 * Sets up for tests.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 		_bsc = new BoxServiceClient("the client id", "the client secret", "user name", "user password");
@@ -32,10 +46,24 @@ public class JoyRide {
 		con = mock(HttpURLConnection.class);
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Test ic token for real.
+   *
+   * Even though this is run as a test, it will truly authenticate with
+   * Box and establish an authorized session to pull back all 
+   * attributes for the current user.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Test
 	public void test_ic_token_for_real() throws Exception {
 		Properties properties = null;
@@ -59,12 +87,29 @@ public class JoyRide {
 		logger().debug("my_box_profile: {}", bsc.get_token_partial(my_box_profile));
 	}
 
+	/**
+	 * Logger.
+	 *
+	 * @return the logger
+	 */
 	private Logger logger(){
 		if (logger == null)
 			logger=LoggerFactory.getLogger(JoyRide.class);
 		return logger;
 	}
 
+	/**
+	 * Gets the properties.
+   * <p></p>
+   * <code>application.properties</code> should contain the credentials necessary for establishing
+   * and authenticated and authorized Box session.  See <code>application.properties.sample</code>
+   * for an example; feel free to copy it and make your own <code>application.properties</code>
+   * file.
+	 *
+	 * @return the properties
+	 * @throws FileNotFoundException the file not found exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	private Properties getProperties() throws FileNotFoundException,
 	IOException {
 		Properties properties = null;

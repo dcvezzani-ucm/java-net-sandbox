@@ -36,27 +36,99 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The Class BoxServiceClient.
+ *
+ * Use this to authenticate with Box, establish a session and obtaining an access
+ * token and then making a RESTful Box Api request.
+ *
+ * At this point, the only action desired is to inactivate a user.
+ */
 public class BoxServiceClient {
+
+	/** The Constant DEFAULT_TOKEN_PARTIAL_LENGTH.
+	 * For debugging purposes only.
+	 */
 	private static final int DEFAULT_TOKEN_PARTIAL_LENGTH = 5;
+
+	/** The Constant CHARSET.
+	 * 	When encoding/decoding, the charset should be specified.
+	 */
 	private static final String CHARSET = "UTF-8";  // Or in Java 7 and later, use the constant: java.nio.charset.StandardCharsets.UTF_8.name()
 
-	Logger logger = null;
-//	CookieManager manager;
-//	CookieStore cookieJar;
+	/** The logger. */
+	private Logger logger = null;
 
-	CloseableHttpClient httpclient = null;
+	/** The httpclient.
+	 * 	Entity used to make requests to Box as if the back-end were doing so through a web
+	 * 	browser, going through the "User Experience"
+	 *
+	 * 	See <a href="https://developers.box.com/oauth/">https://developers.box.com/oauth/</a>
+	 */
+	private CloseableHttpClient httpclient = null;
 
+	/**
+	 * The <code>client_id</code> and <code>client_secret</code> attributes are generated/provided when a
+	 * Box application is created.
+	 * <p>
+	 * See <a href="https://ucmerced.app.box.com/developers/services">https://ucmerced.app.box.com/developers/services</a>
+	 * <p>
+	 * The <code>username</code> and <code>userpass</code> attributes are the credentials for the administrator
+	 * account that is being used to manage the enterprise users.  These are established
+	 * when you are given or create your Box user account and are the same values
+	 * used during a standard login to Box.
+	 * <p>
+	 * There is a set of handshakes that takes place to authenticate and obtain an
+	 * access_token.
+	 * <p>
+	 * <ol>
+	 * <li>ask for <code>request_token</code>, supplying only the client_id</li>
+	 * <li>authenticate using admin account credentials (<code>ic_token</code>); check response for "IC" token</li>
+	 * <li>authorize access to the admin account (<code>auth_token</code>); check response for "AUTH" token</li>
+	 * <li>request <code>access_token</code></li>
+	 * </ol>
+	 * <p>
+	 * Once the <code>access_token</code> is obtained, RESTful Box Api calls may be made.
+	 */
+	String[] authentication_attributes = new String[]{"client_id", "client_secret", "username", "userpass", "request_token", "ic_token", "auth_token", "access_token"};
 
+	/** The client_id. */
 	String client_id;
+
+	/** The client_secret. */
 	String client_secret;
+
+	/** The username. */
 	String username;
+
+	/** The userpass. */
 	String userpass;
 
+	/** Used to initiate the authentication and authorization process to obtain an
+	 * access_token, necessary for making RESTful Box Api requests.
+	 */
 	String request_token;
+
+	/** Part of the credentials form used for authenticating the Box user.  This
+	 * is necessary in order for authentication to succeed and move on to the
+	 * authorization phase. */
 	String ic_token;
+
+	/** This is obtained once the specified user has granted authorization to
+	 * make RESTful Box Api requests of the associated Box enterprise system. */
 	String auth_token;
+
+	/** One all authentication and authorization handshaking is complete, the end
+	 * result is an access token.  This token must be included in the header of
+	 * every RESTful Box Api call that is made. */
 	String access_token;
 
+	/**
+	 * Instantiates a new box service client.
+	 *
+	 * @param client_id the client_id
+	 * @param client_secret the client_secret
+	 */
 	@Deprecated
 	public BoxServiceClient(String client_id, String client_secret){
 		this.client_id = client_id;
@@ -65,6 +137,14 @@ public class BoxServiceClient {
 		userpass = null;
 	}
 
+	/**
+	 * Instantiates a new box service client.
+	 *
+	 * @param client_id the client_id
+	 * @param client_secret the client_secret
+	 * @param username the username
+	 * @param userpass the userpass
+	 */
 	public BoxServiceClient(String client_id, String client_secret, String username, String userpass){
 		this.client_id = client_id;
 		this.client_secret = client_secret;
@@ -72,6 +152,14 @@ public class BoxServiceClient {
 		this.userpass = userpass;
 	}
 
+	/**
+	 * Instantiates a new box service client.
+	 * <p>
+	 * Properties supplied in the argument typically come from a properties file named
+	 * "application.properties" in the classpath.
+	 *
+	 * @param properties the properties
+	 */
 	public BoxServiceClient(Properties properties){
 		client_id = properties.getProperty("client_id");
 		client_secret = properties.getProperty("client_secret");
@@ -79,56 +167,60 @@ public class BoxServiceClient {
 		userpass = properties.getProperty("userpass");
 	}
 
+	/**
+	 * Inactivate the user specified by their ucmnetid.
+	 *
+	 * @param user_id the staff user's ucmnetid
+	 * @return the results (in JSON format)
+	 */
 	public String inactivate(String user_id){
 		StringBuffer json = new StringBuffer();
 
 		return json.toString();
 	}
 
-	protected CloseableHttpClient http_client(){
-		if(httpclient == null){
-			httpclient = HttpClients.createDefault();
-		}
-		return httpclient;
-	}
-
-//	protected void reset_cookies(){
-//		// instantiate CookieManager
-//		manager = new CookieManager();
-//		manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-//		CookieHandler.setDefault(manager);
-//		cookieJar =  manager.getCookieStore();
-//	}
-
+	/**
+	 * Extract the {@link #ic_token} from the response (credentials form).
+	 *
+	 * @return the <code>ic_token</code>
+	 * @throws BoxServiceClientException the box service client exception
+	 */
 	protected String ic_token() throws BoxServiceClientException{
-//		  curl 'https://ucmerced.app.box.com/api/oauth2/authorize?response_type=code&client_id='${CLIENT_ID} \
-//		    -X POST \
-//		    --dump-header header.txt \
-//		    --cookie cookies.txt --cookie-jar cookies.txt \
-//		    -v \
-//		    -H 'Host: ucmerced.app.box.com' \
-//		    -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0' \
-//		    -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' \
-//		    -H 'Accept-Language: en-US,en;q=0.5' \
-//		    -H 'Referer: https://app.box.com/api/oauth2/authorize?response_type=code&client_id='${CLIENT_ID} \
-//		    -H 'Connection: keep-alive' \
-//		    -H 'Content-Type: application/x-www-form-urlencoded' \
-//		    --data 'login='${USERNAME}'&password='${USERPASS}'&login_submit=Authorizing...&dologin=1&client_id='${CLIENT_ID}'&response_type=code&redirect_uri=https%3A%2F%2Fwww.google.com&scope=root_readwrite+manage_enterprise&folder_id=&file_id=&state=&reg_step=&submit1=1&folder=&login_or_register_mode=login&new_login_or_register_mode=&__login=1&_redirect_url=%2Fapi%2Foauth2%2Fauthorize%3Fresponse_type%3Dcode%26client_id%3D'${CLIENT_ID}'&request_token='${REQUEST_TOKEN}'&_pw_sql=' > response.html
+		/* Apache's HttpClient will be used to mimic the behavior shown in the follow curl call
+		 *
+		  curl 'https://ucmerced.app.box.com/api/oauth2/authorize?response_type=code&client_id='${CLIENT_ID} \
+		    -X POST \
+		    --dump-header header.txt \
+		    --cookie cookies.txt --cookie-jar cookies.txt \
+		    -v \
+		    -H 'Host: ucmerced.app.box.com' \
+		    -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0' \
+		    -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*''/*;q=0.8' \
+		    -H 'Accept-Language: en-US,en;q=0.5' \
+		    -H 'Referer: https://app.box.com/api/oauth2/authorize?response_type=code&client_id='${CLIENT_ID} \
+		    -H 'Connection: keep-alive' \
+		    -H 'Content-Type: application/x-www-form-urlencoded' \
+		    --data 'login='${USERNAME}'&password='${USERPASS}'&login_submit=Authorizing...&dologin=1&client_id='${CLIENT_ID}'&response_type=code&redirect_uri=https%3A%2F%2Fwww.google.com&scope=root_readwrite+manage_enterprise&folder_id=&file_id=&state=&reg_step=&submit1=1&folder=&login_or_register_mode=login&new_login_or_register_mode=&__login=1&_redirect_url=%2Fapi%2Foauth2%2Fauthorize%3Fresponse_type%3Dcode%26client_id%3D'${CLIENT_ID}'&request_token='${REQUEST_TOKEN}'&_pw_sql=' > response.html
+		 */
 
 		Exception e1 = null;
 		CloseableHttpResponse response = null;
 		HttpEntity entity = null;
 		ic_token = null;
 
+		// base url
 		String http_url = "https://app.box.com/api/oauth2/authorize";
 
+		// set parameters
 		Map<String, String> parameters = init_parameters();
 		parameters.put("response_type", "code");
 		parameters.put("client_id", client_id);
 		String query = create_query(parameters);
 
+		// full url (with inline parameters)
 		HttpPost httpPost = new HttpPost(String.format("%s%s", http_url, query));
 
+		// prepare form parameters
 		List <BasicNameValuePair> nvps = new ArrayList <BasicNameValuePair>();
 		nvps.add(new BasicNameValuePair("login", username));
 		nvps.add(new BasicNameValuePair("password", userpass));
@@ -152,8 +244,11 @@ public class BoxServiceClient {
 		nvps.add(new BasicNameValuePair("_pw_sql", ""));
 
 		try {
+
+			// set form parameters
 			httpPost.setEntity(new UrlEncodedFormEntity((List<? extends org.apache.http.NameValuePair>) nvps));
 
+			// set headers
 			httpPost.setHeader("User-Agent", URLEncoder.encode("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0", charset()));
 			httpPost.setHeader("Accept-Charset", charset());
 			httpPost.setHeader("Accept-Language", URLEncoder.encode("en-US,en;q=0.5", charset()));
@@ -161,19 +256,20 @@ public class BoxServiceClient {
 			httpPost.setHeader("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", charset()));
 			httpPost.setHeader("Referer", URLEncoder.encode(String.format("https://app.box.com/api/oauth2/authorize?response_type=code&client_id=%s", client_id), charset()));
 			httpPost.setHeader("Connection", "keep-alive");
-//			httpPost.setHeader("Content-Type", URLEncoder.encode("application/x-www-form-urlencoded", charset()));
 
+			// send request; get response
 			response = http_client().execute(httpPost);
-
-			//dump response info
-			logger().debug("Request Method: {}", httpPost.getMethod());
-//			log_cookies(manager, con);
-			log_headers(response);
-//			log_https_cert(con);
-
 			String response_content = get_content(response);
-			write_string_to_file("ic_token.txt", response_content);
 
+			// dump response info
+			logger().debug("Request Method: {}", httpPost.getMethod());
+			log_headers(response);
+
+			if(logger().isDebugEnabled()){
+				write_string_to_file("ic_token.txt", response_content);
+			}
+
+			// extract "IC" token
 			ic_token = parse_ic_token(response_content);
 			logger().debug(String.format("ic_token has been cached (%s)", get_token_partial(ic_token)));
 
@@ -188,35 +284,48 @@ public class BoxServiceClient {
 		return ic_token;
 	}
 
+	/**
+	 * Extract the {@link #auth_token} from the response (authorization form).
+	 *
+	 * @return the <code>auth_token</code>
+	 * @throws BoxServiceClientException the box service client exception
+	 */
 	protected String auth_token() throws BoxServiceClientException{
-//		  curl 'https://app.box.com/api/oauth2/authorize?response_type=code&client_id='${CLIENT_ID}'' \
-//		    -X POST \
-//		    --dump-header header.txt \
-//		    --cookie cookies.txt --cookie-jar cookies.txt \
-//		    -v \
-//		    -H 'Host: app.box.com' \
-//		    -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0' \
-//		    -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' \
-//		    -H 'Accept-Language: en-US,en;q=0.5' \
-//		    -H 'Referer: https://ucmerced.app.box.com/api/oauth2/authorize?response_type=code&client_id='${CLIENT_ID}'' \
-//		    -H 'Connection: keep-alive' \
-//		    -H 'Content-Type: application/x-www-form-urlencoded' \
-//		    --data 'client_id='${CLIENT_ID}'&response_type=code&redirect_uri=https%3A%2F%2Fwww.google.com&scope=root_readwrite+manage_enterprise&folder_id=&file_id=&state=&doconsent=doconsent&ic='${IC_TOKEN}'&consent_accept=Grant+access+to+Box&request_token='${REQUEST_TOKEN}'' > response.html
+		/* Apache's HttpClient will be used to mimic the behavior shown in the follow curl call
+		 *
+	  curl 'https://app.box.com/api/oauth2/authorize?response_type=code&client_id='${CLIENT_ID}'' \
+	    -X POST \
+	    --dump-header header.txt \
+	    --cookie cookies.txt --cookie-jar cookies.txt \
+	    -v \
+	    -H 'Host: app.box.com' \
+	    -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0' \
+	    -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*''/*;q=0.8' \
+	    -H 'Accept-Language: en-US,en;q=0.5' \
+	    -H 'Referer: https://ucmerced.app.box.com/api/oauth2/authorize?response_type=code&client_id='${CLIENT_ID}'' \
+	    -H 'Connection: keep-alive' \
+	    -H 'Content-Type: application/x-www-form-urlencoded' \
+	    --data 'client_id='${CLIENT_ID}'&response_type=code&redirect_uri=https%3A%2F%2Fwww.google.com&scope=root_readwrite+manage_enterprise&folder_id=&file_id=&state=&doconsent=doconsent&ic='${IC_TOKEN}'&consent_accept=Grant+access+to+Box&request_token='${REQUEST_TOKEN}'' > response.html
+		 */
 
 		Exception e1 = null;
 		CloseableHttpResponse response = null;
 		HttpEntity entity = null;
 		auth_token = null;
 
+		// base url
 		String http_url = "https://app.box.com/api/oauth2/authorize";
 
+		// set parameters
 		Map<String, String> parameters = init_parameters();
 		parameters.put("response_type", "code");
 		parameters.put("client_id", client_id);
 		String query = create_query(parameters);
 
+		// full url (with inline parameters)
 		HttpPost httpPost = new HttpPost(String.format("%s%s", http_url, query));
 
+		// prepare form parameters
 		List <BasicNameValuePair> nvps = new ArrayList <BasicNameValuePair>();
 		nvps.add(new BasicNameValuePair("client_id", client_id));
 		nvps.add(new BasicNameValuePair("response_type", "code"));
@@ -231,8 +340,10 @@ public class BoxServiceClient {
 		nvps.add(new BasicNameValuePair("request_token", request_token));
 
 		try {
+			// set form parameters
 			httpPost.setEntity(new UrlEncodedFormEntity((List<? extends org.apache.http.NameValuePair>) nvps));
 
+			// set headers
 			httpPost.setHeader("User-Agent", URLEncoder.encode("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0", charset()));
 			httpPost.setHeader("Accept-Charset", charset());
 			httpPost.setHeader("Accept-Language", URLEncoder.encode("en-US,en;q=0.5", charset()));
@@ -240,19 +351,20 @@ public class BoxServiceClient {
 			httpPost.setHeader("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", charset()));
 			httpPost.setHeader("Referer", URLEncoder.encode(String.format("https://app.box.com/api/oauth2/authorize?response_type=code&client_id=%s", client_id), charset()));
 			httpPost.setHeader("Connection", "keep-alive");
-//			httpPost.setHeader("Content-Type", URLEncoder.encode("application/x-www-form-urlencoded", charset()));
 
+			// send request; get response
 			response = http_client().execute(httpPost);
+			String response_content = get_content(response);
 
 			//dump response info
 			logger().debug("Request Method: {}", httpPost.getMethod());
-//			log_cookies(manager, con);
 			log_headers(response);
-//			log_https_cert(con);
 
-			String response_content = get_content(response);
-			write_string_to_file("auth_token.txt", response_content);
+			if(logger().isDebugEnabled()){
+				write_string_to_file("auth_token.txt", response_content);
+			}
 
+			// extract "AUTH" token
 			Header[] _header_location = response.getHeaders("Location");
 			String header_location = null;
 			if(_header_location != null){
@@ -273,23 +385,35 @@ public class BoxServiceClient {
 		return ic_token;
 	}
 
+	/**
+	 * Extract the {@link #access_token} from the response.
+	 *
+	 * @return the <code>access_token</code>
+	 * @throws BoxServiceClientException the box service client exception
+	 */
 	protected String access_token() throws BoxServiceClientException{
-//		  export ACCESS_TOKEN=$( curl https://api.box.com/oauth2/token \
-//			    -X POST \
-//			    --dump-header header.txt \
-//			    --cookie cookies.txt --cookie-jar cookies.txt \
-//			    -v \
-//			    -d "grant_type=authorization_code&code=${AUTH_TOKEN}&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}" | jq '. | .access_token' | sed -n -e 's/\"\([^\"]*\)\"/\1/p' )
+		/* Apache's HttpClient will be used to mimic the behavior shown in the follow curl call
+		 *
+	  export ACCESS_TOKEN=$( curl https://api.box.com/oauth2/token \
+		    -X POST \
+		    --dump-header header.txt \
+		    --cookie cookies.txt --cookie-jar cookies.txt \
+		    -v \
+		    -d "grant_type=authorization_code&code=${AUTH_TOKEN}&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}" | jq '. | .access_token' | sed -n -e 's/\"\([^\"]*\)\"/\1/p' )
+		 */
 
 		Exception e1 = null;
 		CloseableHttpResponse response = null;
 		HttpEntity entity = null;
 		access_token = null;
 
-		String http_url = "https://api.box.com/oauth2/token";
+		// base url
+		String http_url = "https/api.box.com/oauth2/token";
 
+		// full url (with inline parameters)
 		HttpPost httpPost = new HttpPost(String.format(http_url));
 
+		// prepare form parameters
 		List <BasicNameValuePair> nvps = new ArrayList <BasicNameValuePair>();
 		nvps.add(new BasicNameValuePair("grant_type", "authorization_code"));
 		nvps.add(new BasicNameValuePair("code", auth_token));
@@ -297,19 +421,22 @@ public class BoxServiceClient {
 		nvps.add(new BasicNameValuePair("client_secret", client_secret));
 
 		try {
+			// set form parameters
 			httpPost.setEntity(new UrlEncodedFormEntity((List<? extends org.apache.http.NameValuePair>) nvps));
 
+			// send request; get response
 			response = http_client().execute(httpPost);
+			String response_content = get_content(response);
 
 			//dump response info
 			logger().debug("Request Method: {}", httpPost.getMethod());
-//			log_cookies(manager, con);
 			log_headers(response);
-//			log_https_cert(con);
 
-			String response_content = get_content(response);
-			write_string_to_file("access_token.txt", response_content);
+			if(logger().isDebugEnabled()){
+				write_string_to_file("access_token.txt", response_content);
+			}
 
+			// extract "ACCESS" token
 			access_token = parse_access_token(response_content);
 			logger().debug(String.format("access_token has been cached (%s)", get_token_partial(access_token)));
 
@@ -324,36 +451,49 @@ public class BoxServiceClient {
 		return access_token;
 	}
 
+	/**
+	 * Show Box user profile for the currently authenticated and authorized user.
+	 *
+	 * @return the user profile (in JSON format)
+	 * @throws BoxServiceClientException the box service client exception
+	 */
 	protected String my_box_profile() throws BoxServiceClientException{
-//		  curl https://api.box.com/2.0/users/me \
-//			    --dump-header header.txt \
-//			    --cookie cookies.txt --cookie-jar cookies.txt \
-//			    -v \
-//			    -H "Authorization: Bearer ${ACCESS_TOKEN}" | jq '.'
+		/* Apache's HttpClient will be used to mimic the behavior shown in the follow curl call
+		 *
+	  curl https://api.box.com/2.0/users/me \
+		    --dump-header header.txt \
+		    --cookie cookies.txt --cookie-jar cookies.txt \
+		    -v \
+		    -H "Authorization: Bearer ${ACCESS_TOKEN}" | jq '.'
+		 */
 
 		Exception e1 = null;
 		CloseableHttpResponse response = null;
-//		HttpEntity entity = null;
 		String my_box_profile = null;
 
+		// base url
 		String http_url = "https://api.box.com/2.0/users/me";
 
+		// full url (with inline parameters)
 		HttpGet httpGet = new HttpGet(String.format(http_url));
 
 		try {
+			// set headers
 			httpGet.setHeader("Authorization", String.format("Bearer %s", access_token));
 
+			// send request; get response
 			response = http_client().execute(httpGet);
+			String response_content = get_content(response);
 
 			//dump response info
 			logger().debug("Request Method: {}", httpGet.getMethod());
-//			log_cookies(manager, con);
 			log_headers(response);
-//			log_https_cert(con);
 
-			String response_content = get_content(response);
-			write_string_to_file("my_box_profile.txt", response_content);
+			if(logger().isDebugEnabled()){
+				write_string_to_file("my_box_profile.txt", response_content);
+			}
 
+			// return user profile
 			my_box_profile = response_content;
 
 		} catch (Exception e) {
@@ -367,6 +507,13 @@ public class BoxServiceClient {
 		return my_box_profile;
 	}
 
+	/**
+	 * Creates a String representing a full URL, complete with query clause.
+	 *
+	 * @param parameters the parameters
+	 * @return the full URL
+	 * @throws BoxServiceClientException the box service client exception
+	 */
 	protected String create_query(Map<String, String> parameters) throws BoxServiceClientException {
 		String query = "";
 		Exception e1 = null;
@@ -397,14 +544,25 @@ public class BoxServiceClient {
 		return query;
 	}
 
+	/**
+	 * Following successful authentication and authorization, the request to get an
+	 * active <code>access_token</code> returns JSON.  This method will parse the JSON response
+	 * and return the <code>access_token</code> value only.
+	 *
+	 * @param response_content the response_content
+	 * @return the string
+	 */
 	protected String parse_access_token(String response_content) {
-//		{
-//			  "access_token": "2kFUcXylxR5c7wjx2iz51SrZuSbg02a4",
-//			  "expires_in": 4202,
-//			  "restricted_to": [],
-//			  "refresh_token": "M1DFeKPmoa0lnZ4nyclWZCSpFnphueH8WbZ2X84QkvIfJXpmXPw6kuclqCWA2rkb",
-//			  "token_type": "bearer"
-//			}
+		/* Sample JSON containing the access token value
+		 *
+		{
+		  "access_token": "2kFUcXylxR5c7wjx2iz51SrZuSbg02a4",
+		  "expires_in": 4202,
+		  "restricted_to": [],
+		  "refresh_token": "M1DFeKPmoa0lnZ4nyclWZCSpFnphueH8WbZ2X84QkvIfJXpmXPw6kuclqCWA2rkb",
+		  "token_type": "bearer"
+		}
+		 */
 
 		JSONObject obj = new JSONObject(response_content);
 		String access_token = obj.getString("access_token");
@@ -412,6 +570,13 @@ public class BoxServiceClient {
 		return access_token;
 	}
 
+	/**
+	 * Following the request to initiate authentication, an html response is returned
+	 * with an html form that includes a hidden field with an <code>ic_token</code>.
+	 *
+	 * @param response_content from the initial request
+	 * @return the <code>ic_token</code>
+	 */
 	protected String parse_ic_token(String response_content) {
 		String ic_token = null;
 		Pattern pattern = Pattern.compile(".*<input type=\"hidden\" name=\"ic\" value=\"([^\"]*)\" />.*");
@@ -424,6 +589,14 @@ public class BoxServiceClient {
 		return ic_token;
 	}
 
+	/**
+	 * Following successful authentication and authorization, the
+	 * <code>auth_token</code> is returned in the response header.  This method
+	 * extracts the <code>auth_token</code>.
+	 *
+	 * @param header_location the header_location
+	 * @return the string
+	 */
 	protected String parse_auth_token(String header_location) {
 		String auth_token = null;
 		Pattern pattern = Pattern.compile(".*code=([^&[:space:]]*).*");
@@ -436,18 +609,30 @@ public class BoxServiceClient {
 		return auth_token;
 	}
 
+	/**
+	 * This is the first of many steps to authenticate, authorize and obtain an
+	 * <code>access_token</code> that is then used to make RESTful Box Api requests.  The
+	 * result is a {@link #request_token} that is then used to start the
+	 * authentication step.
+	 *
+	 * @return the <code>request_token</code>
+	 * @throws BoxServiceClientException the box service client exception
+	 */
 	protected String request_token() throws BoxServiceClientException{
-//		  curl 'https://app.box.com/api/oauth2/authorize?response_type=code&client_id='${CLIENT_ID} \
-//		    --dump-header header.txt \
-//		    --cookie cookies.txt --cookie-jar cookies.txt \
-//		    -v \
-//		    -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' \
-//		    -H 'Accept-Language: en-US,en;q=0.5' \
-//		    -H 'Cache-Control: no-cache' \
-//		    -H 'Connection: keep-alive' \
-//		    -H 'Host: app.box.com' \
-//		    -H 'Pragma: no-cache' \
-//		    -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0' > response.html
+		/* Apache's HttpClient will be used to mimic the behavior shown in the follow curl call
+		 *
+	  curl 'https://app.box.com/api/oauth2/authorize?response_type=code&client_id='${CLIENT_ID} \
+	    --dump-header header.txt \
+	    --cookie cookies.txt --cookie-jar cookies.txt \
+	    -v \
+	    -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*''/*;q=0.8' \
+	    -H 'Accept-Language: en-US,en;q=0.5' \
+	    -H 'Cache-Control: no-cache' \
+	    -H 'Connection: keep-alive' \
+	    -H 'Host: app.box.com' \
+	    -H 'Pragma: no-cache' \
+	    -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0' > response.html
+		 */
 
 		Exception e1 = null;
 
@@ -455,16 +640,21 @@ public class BoxServiceClient {
 		HttpEntity entity = null;
 		ic_token = null;
 
+		// base url
 		String http_url = "https://app.box.com/api/oauth2/authorize";
 
+		// set parameters
 		Map<String, String> parameters = init_parameters();
 		parameters.put("response_type", "code");
 		parameters.put("client_id", client_id);
 		String query = create_query(parameters);
 
+		// full url (with inline parameters)
 		HttpGet httpGet = new HttpGet(String.format("%s%s", http_url, query));
 
 		try {
+
+			// set headers
 			httpGet.setHeader("Accept-Charset", charset());
 			httpGet.setHeader("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", charset()));
 			httpGet.setHeader("Accept-Language", URLEncoder.encode("en-US,en;q=0.5", charset()));
@@ -473,17 +663,19 @@ public class BoxServiceClient {
 			httpGet.setHeader("Accept", URLEncoder.encode("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", charset()));
 			httpGet.setHeader("Connection", "keep-alive");
 
+			// send request; get response
 			response = http_client().execute(httpGet);
-
 			String response_content = get_content(response);
-			write_string_to_file("request_token.txt", response_content);
+
+			if(logger().isDebugEnabled()){
+				write_string_to_file("request_token.txt", response_content);
+			}
 
 			//dump response info
 			logger().debug("Request Method: {}", httpGet.getMethod());
-//			log_cookies(manager, con);
 			log_headers(response);
-//			log_https_cert(con);
 
+			// extract "REQUEST" token
 			request_token = parse_request_token(response_content);
 			logger().debug(String.format("request_token has been cached (%s)", get_request_token_partial()));
 
@@ -498,14 +690,36 @@ public class BoxServiceClient {
 		return request_token;
 	}
 
+	/**
+	 * Show the last part of the <code>request_token</code>.
+	 *
+	 * @return part of the <code>request_token</code>
+	 */
 	protected String get_request_token_partial(){
 		return get_token_partial(request_token, DEFAULT_TOKEN_PARTIAL_LENGTH);
 	}
 
+	/**
+	 * Logging tokens may feel like a breach of security.  In order to provide
+	 * useful logging, but guard against disclosing too much, just show the
+	 * last few characters of the token.
+	 *
+	 * @param token the token
+	 * @return part of the <code>request_token</code>
+	 */
 	protected String get_token_partial(String token){
 		return get_token_partial(token, DEFAULT_TOKEN_PARTIAL_LENGTH);
 	}
 
+	/**
+	 * Logging tokens may feel like a breach of security.  In order to provide
+	 * useful logging, but guard against disclosing too much, just show the
+	 * last <code>length</code> characters of the token.
+	 *
+	 * @param token the token
+	 * @param length the number of characters to reveal (from the end of the token)
+	 * @return part of the <code>request_token</code>
+	 */
 	protected String get_token_partial(String token, int length){
 		String request_token_partial = null;
 		if(token != null && token.length() > 0){
@@ -516,6 +730,14 @@ public class BoxServiceClient {
 		return request_token_partial;
 	}
 
+	/**
+	 * Given the content body of an html response, scrape the page for the
+	 * <code>request_token</code>.  This should be located in a hidden input field in the
+	 * html form.
+	 *
+	 * @param response_content the response_content
+	 * @return the <code>request_token</code>
+	 */
 	protected String parse_request_token(String response_content) {
 		String request_token = null;
 		Pattern pattern = Pattern.compile(".*<input type=\"hidden\" name=\"request_token\" value=\"([^\"]*)\">.*");
@@ -528,6 +750,16 @@ public class BoxServiceClient {
 		return request_token;
 	}
 
+	/**
+	 * Given a base url and a map of parameters, create a full url, complete
+	 * with a query string.  If parameters don't exist, then there shouldn't
+	 * be any query string in the url.
+	 *
+	 * @param http_url the http_url
+	 * @param parameters the parameters
+	 * @return the complete url, with query string if applicable
+	 * @throws BoxServiceClientException the box service client exception
+	 */
 	protected URL create_url(String http_url, Map<String, String> parameters) throws BoxServiceClientException {
 		URL url = null;
 		Exception e1 = null;
@@ -548,6 +780,14 @@ public class BoxServiceClient {
 		return url;
 	}
 
+	/**
+	 * Get handle to the logger.
+	 * <p></p>
+	 * Encapsulating the logger this way allows for some unit testing
+	 * and validation that would not otherwise be so easy.
+	 *
+	 * @return the logger
+	 */
 	protected Logger logger(){
 		if (logger == null)
 			logger=LoggerFactory.getLogger("edu.ucmerced.box.client.BoxServiceClient");
@@ -555,11 +795,27 @@ public class BoxServiceClient {
 		return logger;
 	}
 
+	/**
+	 * Gets a buffered reader.
+	 * <p></p>
+	 * Encapsulating the logger this way allows for some unit testing
+	 * and validation that would not otherwise be so easy.
+	 *
+	 * @param is the is
+	 * @return the _buffered_reader
+	 */
 	protected BufferedReader get_buffered_reader(InputStream is){
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 		return br;
 	}
 
+	/**
+	 * Gets the response body content (for Apache HttpClient).
+	 *
+	 * @param response the response
+	 * @return the body content
+	 * @throws BoxServiceClientException the box service client exception
+	 */
 	protected String get_content(CloseableHttpResponse response) throws BoxServiceClientException{
 		String response_content = null;
 
@@ -590,6 +846,13 @@ public class BoxServiceClient {
 		return response_content;
 	}
 
+	/**
+	 * Gets the response body content (for java.net).
+	 *
+	 * @param con the http connection
+	 * @return the body content
+	 * @throws BoxServiceClientException the box service client exception
+	 */
 	protected String get_content(HttpURLConnection con) throws BoxServiceClientException{
 		String res = null;
 
@@ -620,10 +883,25 @@ public class BoxServiceClient {
 		return res;
 	}
 
+	/**
+	 * Gets the charset (used for encoding and decoding).
+	 * <p></p>
+	 * Encapsulating the logger this way allows for some unit testing
+	 * and validation that would not otherwise be so easy.
+	 *
+	 * @return the string
+	 */
 	protected String charset(){
 		return CHARSET;
 	}
 
+	/**
+	 * Opens a http(s) connection (for java.net).
+	 *
+	 * @param http_url the http_url
+	 * @return the http url connection
+	 * @throws BoxServiceClientException the box service client exception
+	 */
 	protected HttpURLConnection open_connection(String http_url) throws BoxServiceClientException{
 		HttpURLConnection con = null;
 		Exception e1 = null;
@@ -643,6 +921,14 @@ public class BoxServiceClient {
 		return con;
 	}
 
+	/**
+	 * Opens a http(s) connection (for java.net).
+	 *
+	 * @param http_url the http_url
+	 * @param parameters the parameters
+	 * @return the http url connection
+	 * @throws BoxServiceClientException the box service client exception
+	 */
 	protected HttpURLConnection open_connection(String http_url, Map<String, String> parameters) throws BoxServiceClientException{
 		HttpURLConnection con = null;
 		Exception e1 = null;
@@ -664,16 +950,38 @@ public class BoxServiceClient {
 		return con;
 	}
 
+	/**
+	 * Init map for query parameters.
+	 * <p></p>
+	 * Encapsulating the logger this way allows for some unit testing
+	 * and validation that would not otherwise be so easy.
+	 *
+	 * @return the map
+	 */
 	protected Map<String, String> init_parameters(){
 		Map<String, String> parameters = new HashMap<String,String>();
 		return parameters;
 	}
 
+	/**
+	 * Write_string_to_file.
+	 *
+	 * @param response_content the response_content
+	 * @deprecated Use {@link #write_string_to_file(String, String)} instead
+	 */
 	@Deprecated
 	private void write_string_to_file(String response_content) {
 		write_string_to_file("chk.txt", response_content);
 	}
 
+	/**
+	 * Write the provided string to a file with the specified path and name.  In
+   * this file, the string will typically be the body content from an http(s)
+   * response.
+	 *
+	 * @param filename the filename
+	 * @param response_content the response_content
+	 */
 	private void write_string_to_file(String filename, String response_content) {
 		try {
 			PrintWriter out = new PrintWriter(filename);
@@ -684,11 +992,26 @@ public class BoxServiceClient {
 			logger().debug(String.format("%d bytes were written to file, %s", response_content.length(), filename));
 
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+
+			String response_content_sample = "<null>";
+			if (response_content != null){
+				int sample_length = (response_content.length() > 100) ? 100 : response_content.length();
+				response_content_sample =  response_content.substring(0,  sample_length);
+			}
+
+			logger().warn(String.format("Unable to write string to file: %s (%s)", filename, response_content_sample));
 			e.printStackTrace();
 		}
 	}
 
+	/**
+	 * Log cookies (for java.net).
+   * <p></p>
+   * It appears that cookies are automatically handled for Apache's HttpClient.
+	 *
+	 * @param manager the cookie manager
+	 * @param con the http(s) connection
+	 */
 	private void log_cookies(CookieManager manager, HttpURLConnection con) {
 		if(logger().isDebugEnabled()){
 			// get cookies from underlying
@@ -701,17 +1024,27 @@ public class BoxServiceClient {
 		}
 	}
 
+	/**
+	 * Log headers (for Apache HttpClient).
+	 *
+	 * @param response the response
+	 */
 	private void log_headers(CloseableHttpResponse response) {
 		if(logger().isDebugEnabled()){
-		for(Header header : response.getAllHeaders()){
-			logger().debug(String.format("Name : %s, Value: %s", header.getName(), header.getValue()));
-		}
+			for(Header header : response.getAllHeaders()){
+				logger().debug(String.format("Name : %s, Value: %s", header.getName(), header.getValue()));
+			}
 			//get header by 'key'
-//			String server = con.getHeaderField("Server");
-//			logger().debug("[HEADER] Server: {}", server);
+			//			String server = con.getHeaderField("Server");
+			//			logger().debug("[HEADER] Server: {}", server);
 		}
 	}
 
+	/**
+	 * Log headers (for java.net).
+	 *
+	 * @param con the http(s) connection
+	 */
 	private void log_headers(HttpURLConnection con) {
 		if(logger().isDebugEnabled()){
 			//get all headers
@@ -726,6 +1059,11 @@ public class BoxServiceClient {
 		}
 	}
 
+	/**
+	 * Log https certificate attributes.
+	 *
+	 * @param con the http(s) connection
+	 */
 	private void log_https_cert(HttpsURLConnection con){
 
 		if(con!=null && logger().isDebugEnabled()){
@@ -751,6 +1089,21 @@ public class BoxServiceClient {
 
 		}
 
+	}
+
+	/**
+	 * Http client (for Apache HttpClient).
+	 * <p></p>
+	 * Encapsulating the logger this way allows for some unit testing
+	 * and validation that would not otherwise be so easy.
+	 *
+	 * @return the closeable http client
+	 */
+	protected CloseableHttpClient http_client(){
+		if(httpclient == null){
+			httpclient = HttpClients.createDefault();
+		}
+		return httpclient;
 	}
 
 }
